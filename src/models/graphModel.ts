@@ -14,7 +14,8 @@ const GraphSchema = mongoose.Schema({
             required: true
         }, 
         paramY: {
-            type: Number
+            type: Number,
+            required: true
         },
         paramXName: {
             type: String,
