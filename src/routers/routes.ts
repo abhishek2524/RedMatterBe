@@ -73,31 +73,14 @@ router.post("/graphs/:workspaceid",async(req:Request,res:Response)=>{
 })
 
 router.patch("/graphs/:workspaceid/:graphid/",(req:Request,res:Response)=>{
+    delete req.body["_id"];
     const workspaceId = req.params.workspaceid;
     const graphid = req.params.graphid;
-    const paramX = req.query.paramX;
-    const paramY = req.query.paramY;
-    let qry:any = {}
-    if(paramX != undefined){
-        qry['graphs.$.paramX'] = Number(paramX);
+
+    let qry:any = {};
+    for (const [key,item] of Object.entries(req.body)) {
+        qry[`graphs.$.${key}`] = item;
     }
-    if(paramY != undefined){
-        qry['graphs.$.paramY'] = Number(paramY);
-    }
-    const paramsPath = path.join(__dirname,"../sample_data/params.json")
-    let paramsData = JSON.parse(fs.readFileSync(paramsPath,"utf-8"));
-    paramsData.map((data:paramsData)=>{
-        if(paramX != undefined){
-            if(data.key == paramX){
-                qry['graphs.$.paramXName'] = data.value;
-            }
-        }
-        if(paramY != undefined){
-            if(data.key == paramY){
-                qry['graphs.$.paramYName'] = data.value;
-            }
-        }
-    })
     Graph.findOneAndUpdate({workspaceId:ObjectId(workspaceId),"graphs._id":ObjectId(graphid)},{
             $set:qry
         },{new: true}).
@@ -112,9 +95,13 @@ router.patch("/graphs/:workspaceid/:graphid/",(req:Request,res:Response)=>{
             })
             .then((data:any)=>{
                 res.status(200).json({data:data[0],status:200})
+            }).catch((err:any)=>{
+                console.log('errr2====',err);
+                res.status(500).json({data:err,status:500})
             })
         })
         .catch((err:any)=>{
+            console.log('errr1>>>',err)
             res.status(500).json({data:err,status:500})
         })
 })
